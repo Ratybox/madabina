@@ -13,10 +13,30 @@ This Django application provides a REST API for performing Principal Component A
 
 ## Installation
 
+1. **Clone repository**
 ```bash
 git clone https://github.com/Ratybox/madabina.git
 cd pca_tp_and
+```
+
+2. **Set up virtual environment**
+```bash
+# Windows
+python -m venv venv
+venv\Scripts\activate
+
+# Linux/Mac
+python3 -m venv venv
+source venv/bin/activate
+```
+
+3. **Install dependencies**
+```bash
 pip install -r requirements.txt
+```
+
+4. **Run Django server**
+```bash
 python manage.py runserver
 ```
 
