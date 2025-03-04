@@ -1,4 +1,3 @@
-### Environnements virtuels ###
 .venv/
 .env/
 .envrc
