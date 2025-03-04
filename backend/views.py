@@ -12,7 +12,7 @@ uploaded_csv_data = {}
 
 @api_view(['GET'])
 def get_data(request):
-    data = {"message": "salam from imputation app hh"}
+    data = {"message": "salam from madabina app hh"}
     return Response(data)
 
 @api_view(['POST'])
@@ -53,12 +53,10 @@ def perform_pca(request):
     
     except Exception as e:
         return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
-
+"""
 @api_view(['POST'])
 def perform_pca_homogeneous(request):
-    """
-    Endpoint pour effectuer l'analyse PCA homogène
-    """
+
     try:
         if 'df' not in uploaded_csv_data:
             return Response({"error": "Aucune donnée CSV n'a été chargée. Veuillez d'abord charger un fichier CSV."}, 
@@ -77,9 +75,7 @@ def perform_pca_homogeneous(request):
 
 @api_view(['POST'])
 def perform_pca_heterogeneous(request):
-    """
-    Endpoint pour effectuer l'analyse PCA hétérogène
-    """
+
     try:
         if 'df' not in uploaded_csv_data:
             return Response({"error": "Aucune donnée CSV n'a été chargée. Veuillez d'abord charger un fichier CSV."}, 
@@ -96,7 +92,7 @@ def perform_pca_heterogeneous(request):
     except Exception as e:
         return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
-"""
+
 @api_view(['POST'])
 def analyze_data(request):
 
