@@ -4,7 +4,7 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
 import pandas as pd
-
+import numpy as np
 from .utils import pca, prepare_response
 
 uploaded_csv_data = {}
@@ -47,4 +47,37 @@ def perform_pca(request):
         return Response(prepare_response(results), status=status.HTTP_200_OK)
     
     except Exception as e:
+        return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+    
+
+@api_view(['GET'])
+
+def test_example(request):
+
+    try:
+
+        data = np.array([[16, 20, 12], [20, 12, 22], [16, 24, 26], [28, 24, 20]])
+
+        results = {
+
+            'normalized': pca(data, pca_type='normalized'),
+
+            'homogeneous': pca(data, pca_type='homogeneous'),
+
+            'heterogeneous': pca(data, pca_type='heterogeneous')
+
+        }
+
+        return Response({
+
+            'message': 'Test effectué avec succès',
+
+            'data': data.tolist(),
+
+            'results': {k: prepare_response(v) for k, v in results.items()}
+
+        }, status=status.HTTP_200_OK)
+
+    except Exception as e:
+
         return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
