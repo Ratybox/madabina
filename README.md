@@ -1,105 +1,92 @@
-# API d'Analyse en Composantes Principales (PCA)
+# Principal Component Analysis (PCA) API
 
-Cette application Django fournit une API REST permettant de réaliser des analyses en composantes principales (PCA) sur des données numériques.
+This Django application provides a REST API for performing Principal Component Analysis on numerical data.
 
-## Fonctionnalités
+## Features
 
-- Implémentation "from scratch" des méthodes PCA (sans utiliser sklearn)
-- Support de plusieurs types d'analyses :
-  - PCA normée
-  - PCA non normée homogène
-  - PCA non normée hétérogène
-- Upload de fichiers CSV
-- Calcul complet des composantes principales, valeurs propres, vecteurs propres, etc.
-- Calcul des métriques de qualité, inertie, et contributions
+- From-scratch PCA implementation
+- Support for multiple analysis types:
+  - Normalized PCA
+  - Homogeneous PCA
+  - Heterogeneous PCA
+- CSV file upload capability
 
 ## Installation
 
-1. Cloner le dépôt
+1. Clone repository
 ```bash
-git clone <URL_DU_REPO>
+git clone https://github.com/Ratybox/madabina.git
 cd pca_tp_and
 ```
 
-2. Installer les dépendances
+2. Install dependencies
 ```bash
 pip install -r requirements.txt
 ```
 
-3. Démarrer le serveur Django
+3. Start Django server
 ```bash
 python manage.py runserver
 ```
 
-## Structure du projet
+## Project Structure
 
-- `backend/` : Application Django principale
-  - `utils.py` : Implémentation des algorithmes PCA
-  - `views.py` : Endpoints API REST
-  - `urls.py` : Configuration des routes
-- `pca_tp_and/` : Configuration du projet Django
+- `backend/`: Core Django application
+  - `utils.py`: PCA algorithms implementation
+  - `views.py`: API endpoint handlers
+  - `urls.py`: Route configuration
+- `pca_tp_and/`: Django project configuration
 
 ## API Endpoints
 
-### Upload de fichier CSV
-- **URL** : `/api/upload-csv/`
-- **Méthode** : `POST`
-- **Paramètres** :
-  - `file` : Fichier CSV à analyser
-  - `separator` (optionnel) : Séparateur CSV (défaut: ',')
-- **Réponse** : Informations sur les données chargées
+### CSV File Upload
+- **URL**: `/api/upload-csv-data/`
+- **Method**: `POST`
+- **Parameters**:
+  - `file`: CSV file to analyze
+- **Response**: Upload confirmation and basic data info
 
-### Analyse PCA sur les données chargées
-- **URL** : `/api/perform-pca/`
-- **Méthode** : `POST`
-- **Paramètres** :
-  - `pca_type` : Type d'analyse ('normalized', 'homogeneous', 'heterogeneous')
-- **Réponse** : Résultats complets de l'analyse PCA
+### General PCA Analysis
+- **URL**: `/api/perform-pca/`
+- **Method**: `POST`
+- **Parameters**:
+  - `pca_type`: Analysis type ('normalized', 'homogeneous', 'heterogeneous')
+- **Response**: Full PCA results
 
-### Analyse PCA sur des données brutes
-- **URL** : `/api/analyze-data/`
-- **Méthode** : `POST`
-- **Paramètres** :
-  - `data` : Tableau 2D de données numériques
-  - `pca_type` (optionnel) : Type d'analyse (défaut: 'normalized')
-- **Réponse** : Résultats complets de l'analyse PCA
+### Homogeneous PCA
+- **URL**: `/api/perform-pca-homogeneous/`
+- **Method**: `POST`
+- **Response**: Homogeneous PCA results
 
-### Test avec données d'exemple
-- **URL** : `/api/test-example/`
-- **Méthode** : `GET`
-- **Réponse** : Résultats des trois types d'analyses PCA sur les données d'exemple
+### Heterogeneous PCA 
+- **URL**: `/api/perform-pca-heterogeneous/`
+- **Method**: `POST`
+- **Response**: Heterogeneous PCA results
 
-## Format de réponse
+### Simple Data Check
+- **URL**: `/api/get-data/`
+- **Method**: `GET`
+- **Response**: Basic API status message
 
-La réponse contient un dictionnaire complet avec :
-- `pca_type` : Type d'analyse effectuée
-- `n_individuals`, `n_variables` : Dimensions des données
-- `variables`, `individuals` : Noms des variables et individus
-- `data_original`, `data_centered` : Données originales et centrées
-- `variance_matrix`, `metric` : Matrices de variance et métrique
-- `eigenvalues`, `eigenvectors` : Valeurs et vecteurs propres
-- `inertia` : Informations sur l'inertie totale et par axe
-- `n_significant_components` : Nombre de composantes significatives
-- `principal_components` : Composantes principales
-- `correlations` : Corrélations entre variables et axes
-- `contributions` : Contributions des variables et individus
-- `cos2` : Qualité de représentation des individus
+## Response Format
 
-## Exemple d'utilisation
-
-### Python (avec requests)
-```python
-import requests
-import json
-
-# Upload d'un fichier CSV
-with open('data.csv', 'rb') as f:
-    response = requests.post('http://localhost:8000/api/upload-csv/', 
-                           files={'file': f})
-print(response.json())
-
-# Analyse PCA
-response = requests.post('http://localhost:8000/api/perform-pca/',
-                       json={'pca_type': 'normalized'})
-results = response.json()
-print(results) 
+Typical response contains:
+```json
+{
+  "pca_type": "normalized",
+  "n_individuals": 150,
+  "n_variables": 4,
+  "variables": ["sepal_length", "sepal_width", ...],
+  "eigenvalues": [2.918, 0.914, ...],
+  "inertia": {
+    "total": 4.573,
+    "explained_percent_by_axis": [63.8, 23.9, ...]
+  },
+  "principal_components": [[-2.684, 0.319, ...], ...],
+  "correlations": [[0.890, -0.034, ...], ...],
+  "contributions": {
+    "variables": [[45.2, 1.8, ...], ...],
+    "individuals": [[0.52, 0.03, ...], ...]
+  }
+}
+```
