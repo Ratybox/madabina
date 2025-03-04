@@ -1,0 +1,6 @@
+### Environnements virtuels ###
+venv/
+.env/
+.envrc
+.env.local
+.env.*.local
