@@ -3,28 +3,19 @@ import pandas as pd
 import json
 
 def calculate_inertia(eigenvalues):
-    """Calcule l'inertie totale à partir des valeurs propres"""
     return np.sum(eigenvalues)
 
 def calculate_quality(eigenvalues, n_components=None):
-    """Calcule la qualité de représentation pour un nombre donné de composantes"""
     total_inertia = calculate_inertia(eigenvalues)
     
     if n_components is None:
-        return np.ones(len(eigenvalues)) * 100  # 100% avec toutes les composantes
+        return np.ones(len(eigenvalues)) * 100
     
     cumulative_quality = np.cumsum(eigenvalues) / total_inertia * 100
     return cumulative_quality[:n_components]
 
 def pca(data, pca_type='normalized'):
-    """
-    Args:
-        data: DataFrame ou numpy array contenant les données
-        pca_type: Type de PCA ('normalized', 'homogeneous', 'heterogeneous')
-    
-    Returns:
-        dict: Dictionnaire contenant tous les résultats de la PCA
-    """
+  
     # Convertir en numpy array si nécessaire
     if isinstance(data, pd.DataFrame):
         variables = data.columns.tolist()
@@ -131,55 +122,8 @@ def pca(data, pca_type='normalized'):
     
     return results
 
-def load_csv_data(file_content, sep=','):
-    """Charge les données depuis un contenu CSV"""
-    try:
-        # Vérifier si le contenu est binaire ou déjà une chaîne
-        if isinstance(file_content, bytes):
-            # Essayer différents encodages
-            encodings = ['utf-8', 'latin-1', 'cp1252', 'iso-8859-1']
-            content_str = None
-            
-            for encoding in encodings:
-                try:
-                    content_str = file_content.decode(encoding)
-                    break
-                except UnicodeDecodeError:
-                    continue
-            
-            if content_str is None:
-                # Si tous les encodages échouent, utiliser latin-1 qui est le plus permissif
-                content_str = file_content.decode('latin-1', errors='replace')
-        else:
-            content_str = file_content
-        
-        # Nettoyer les données si nécessaire (BOM, etc.)
-        if content_str.startswith('\ufeff'):
-            content_str = content_str[1:]  # Supprimer le BOM
-            
-        # Essayer différents séparateurs si celui fourni ne fonctionne pas
-        try:
-            df = pd.read_csv(pd.io.common.StringIO(content_str), sep=sep)
-        except Exception as e1:
-            # Si le séparateur spécifié échoue, essayer d'autres séparateurs courants
-            for alt_sep in [',', ';', '\t', '|']:
-                if alt_sep != sep:
-                    try:
-                        df = pd.read_csv(pd.io.common.StringIO(content_str), sep=alt_sep)
-                        # Si ça fonctionne, utiliser ce séparateur
-                        return df
-                    except:
-                        continue
-            # Si aucun séparateur ne fonctionne, relancer l'exception originale
-            raise e1
-            
-        return df
-    except Exception as e:
-        raise ValueError(f"Erreur lors du chargement du fichier CSV: {str(e)}")
 
 def prepare_response(results):
-    """Convertit les résultats en format JSON compatible pour l'API"""
-    # Convertir les arrays numpy en listes
     for key, value in results.items():
         if isinstance(value, np.ndarray):
             results[key] = value.tolist()
@@ -187,22 +131,3 @@ def prepare_response(results):
             results[key] = prepare_response(value)
     
     return results
-
-def verify_properties(eigenvectors, metric, principal_components):
-    """Vérifie les propriétés mentionnées dans la remarque"""
-    # Base orthonormée
-    for i in range(eigenvectors.shape[1]):
-        for j in range(i+1, eigenvectors.shape[1]):
-            assert np.abs(eigenvectors[:, i].T @ metric @ eigenvectors[:, j]) < 1e-10
-            assert np.abs(eigenvectors[:, i].T @ metric @ eigenvectors[:, i] - 1) < 1e-10
-
-    # Moyenne nulle des composantes
-    assert np.all(np.abs(np.mean(principal_components, axis=0)) < 1e-10)
-
-    # Variance des composantes = valeurs propres
-    assert np.all(np.abs(np.var(principal_components, axis=0) - eigenvalues) < 1e-10)
-
-    # Covariance nulle entre composantes
-    for i in range(principal_components.shape[1]):
-        for j in range(i+1, principal_components.shape[1]):
-            assert np.abs(np.cov(principal_components[:, i], principal_components[:, j])[0, 1]) < 1e-10

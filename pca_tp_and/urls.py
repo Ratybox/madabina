@@ -9,8 +9,6 @@ def api_root(request):
         'endpoints': {
             'upload_csv': '/api/upload-csv/',
             'perform_pca': '/api/perform-pca/',
-            'analyze_data': '/api/analyze-data/',
-            'test_example': '/api/test-example/'
         }
     })
 
