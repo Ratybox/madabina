@@ -1,6 +1,8 @@
 import numpy as np
 import pandas as pd
 import json
+#from sklearn.cluster import KMeans
+#from sklearn.preprocessing import StandardScaler
 
 def calculate_inertia(eigenvalues):
     return np.sum(eigenvalues)
@@ -33,20 +35,20 @@ def pca(data, pca_type='normalized'):
     n = X.shape[0]
     variance_matrix = (1 / n) * (X_centered.T @ X_centered)
     
-    # Définir la matrice métrique selon le type de PCA
-    if pca_type == 'normalized':
+    # La  métrique 
+    if pca_type in ['normalized', 'normalized_kaiser']:
         # PCA normée: Utilise la matrice diagonale des inverses des variances
         std = np.std(X_centered, axis=0, ddof=1)
         metric = np.diag(1 / std**2)
-    elif pca_type == 'homogeneous':
+    elif pca_type in ['homogeneous', 'homogeneous_kaiser']:
         # PCA non normée homogène: Utilise la matrice identité
         metric = np.eye(X.shape[1])
-    elif pca_type == 'heterogeneous':
+    elif pca_type in ['heterogeneous', 'heterogeneous_kaiser']:
         # PCA non normée hétérogène: Utilise une autre pondération
         std = np.std(X_centered, axis=0, ddof=1)
         metric = np.diag(1 / std**2)
     else:
-        raise ValueError("Type de PCA non reconnu. Utilisez 'normalized', 'homogeneous' ou 'heterogeneous'")
+        raise ValueError("Type de PCA non reconnu. Utilisez 'normalized', 'normalized_kaiser', 'homogeneous', 'homogeneous_kaiser', 'heterogeneous' ou 'heterogeneous_kaiser'")
     
     # Calcul des valeurs propres et vecteurs propres
     eigenvalues, eigenvectors = np.linalg.eigh(metric @ variance_matrix)
@@ -56,15 +58,24 @@ def pca(data, pca_type='normalized'):
     eigenvalues = eigenvalues[idx]
     eigenvectors = eigenvectors[:, idx]
     
-    # Calcul de la qualité et du nombre d'axes à retenir (critère 80%)
+    # Calcul de la qualité et du nombre d'axes à retenir
     total_inertia = calculate_inertia(eigenvalues)
     cumulative_quality = np.cumsum(eigenvalues) / total_inertia * 100
-    n_components = np.argmax(cumulative_quality >= 80) + 1 if np.any(cumulative_quality >= 80) else len(eigenvalues)
     
-    # Calculer les composantes principales
+    # 80% or kaiser
+    if pca_type in ['normalized_kaiser', 'homogeneous_kaiser', 'heterogeneous_kaiser']:
+        # Règle de Kaiser: conserver seulement les valeurs propres > 1
+        n_components = np.sum(eigenvalues > 1)
+        # S'il n'y a pas de valeurs propres > 1, conservez au moins 1 composante
+        n_components = max(1, n_components)
+    else:
+        # Critère du seuil de 80% de qualité cumulée
+        n_components = np.argmax(cumulative_quality >= 80) + 1 if np.any(cumulative_quality >= 80) else len(eigenvalues)
+    
+    # Calculer les CK
     principal_components = X_centered @ eigenvectors
     
-    # Calcul des statistiques descriptives des composantes principales
+    # Calcul les statistiques des CK
     pc_means = np.mean(principal_components, axis=0)
     pc_variance = np.var(principal_components, axis=0)
     pc_covariance = np.cov(principal_components, rowvar=False)
@@ -121,7 +132,7 @@ def pca(data, pca_type='normalized'):
             'physical_meaning': physical_meaning
         }
 
-    # Préparer les résultats
+    # résultats
     results = {
         'pca_type': pca_type,
         'n_individuals': X.shape[0],
@@ -156,8 +167,40 @@ def pca(data, pca_type='normalized'):
             'individuals': cos2_ind.tolist()
         },
         'variable_classifications': variable_classifications
+
     }
+    """
+    CLUSTERING WITH K-MEANS (mba3d hh)
+    """
     
+    """
+    pc_for_clustering = principal_components[:, :n_components]
+    
+    max_clusters = min(10, X.shape[0]-1)  # Maximum de 10 clusters ou n-1 si moins d'observations
+    inertias = []
+    for k in range(1, max_clusters + 1):
+        kmeans = KMeans(n_clusters=k, random_state=42)
+        kmeans.fit(pc_for_clustering)
+        inertias.append(kmeans.inertia_)
+    
+    inertia_diffs = np.diff(inertias)
+    inertia_diffs_2 = np.diff(inertia_diffs)
+    optimal_n_clusters = np.argmin(inertia_diffs_2) + 2  # +2 car on commence à 1 et on a fait deux diff
+    
+    final_kmeans = KMeans(n_clusters=optimal_n_clusters, random_state=42)
+    clusters = final_kmeans.fit_predict(pc_for_clustering)
+    
+    cluster_centers = final_kmeans.cluster_centers_
+    
+    results['clustering'] = {
+        'n_clusters': int(optimal_n_clusters),
+        'cluster_labels': clusters.tolist(),
+        'cluster_centers': cluster_centers.tolist(),
+        'inertia_curve': inertias,
+        'cluster_sizes': [int(np.sum(clusters == i)) for i in range(optimal_n_clusters)],
+        'silhouette_scores': None 
+    }
+    """
     return results
 
 
