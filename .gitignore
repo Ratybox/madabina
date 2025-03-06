@@ -1,5 +1,95 @@
-.venv/
-.env/
-.envrc
-.env.local
-.env.*.local
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environment
+venv/
+env/
+*.env
+*.venv
+
+# Django stuff
+db.sqlite3
+*.sqlite3
+media/
+staticfiles/
+static/
+*.log
+*.pot
+*.pyc
+*.pyo
+.DS_Store
+
+# Secret settings
+.env
+*.secret
+config/settings/local.py  # If using a local settings file
+
+# Migrations cache
+**/migrations/**/__pycache__/
+**/migrations/*.pyc
+**/migrations/*.pyo
+**/migrations/*.log
+
+# Ignore IDE files
+.vscode/
+.idea/
+*.sublime-workspace
+
+# Ignore testing and coverage files
+htmlcov/
+.coverage
+.tox/
+.nox/
+*.cover
+nosetests.xml
+coverage.xml
+pytest_cache/
+
+# Ignore compiled Cython files
+*.so
+
+# Ignore Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+
+# Ignore gunicorn logs
+gunicorn.log
+gunicorn-access.log
+gunicorn-error.log
+
+# Ignore Docker artifacts
+docker-compose.override.yml
+.dockerignore
+
+# Ignore pipenv and poetry files
+Pipfile
+Pipfile.lock
+poetry.lock
+
+# Ignore Celery logs
+celerybeat-schedule
+celerybeat.pid
+
+# Ignore deployment-related files
+*.swp
+*.swo
+*.bak
+*.orig
+*.rej
+*.exe
+*.out
+*.class
+*.jar
+
+# Ignore Node.js files (if frontend exists)
+node_modules/
+npm-debug.log
+yarn.lock
+
+# Ignore compiled translation files
+*.mo
+
+# Ignore database dumps
+*.sql
+*.dump

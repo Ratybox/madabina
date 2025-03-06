@@ -64,6 +64,11 @@ def pca(data, pca_type='normalized'):
     # Calculer les composantes principales
     principal_components = X_centered @ eigenvectors
     
+    # Calcul des statistiques descriptives des composantes principales
+    pc_means = np.mean(principal_components, axis=0)
+    pc_variance = np.var(principal_components, axis=0)
+    pc_covariance = np.cov(principal_components, rowvar=False)
+    
     # Corrélations entre variables et composantes
     correlations = np.zeros((X.shape[1], len(eigenvalues)))
     for i in range(X.shape[1]):
@@ -89,6 +94,33 @@ def pca(data, pca_type='normalized'):
         for j in range(len(eigenvalues)):
             cos2_ind[i, j] = (principal_components[i, j] ** 2) / np.sum(X_centered[i] ** 2)
     
+    # Classification des variables
+    variable_classifications = {}
+    for i, var in enumerate(variables):
+        # Une variable est bien représentée si sa corrélation au carré (cos²) est > 0.5
+        correlations_squared = correlations[i, :] ** 2
+        significant_axes = [j+1 for j, corr in enumerate(correlations_squared) if corr >= 0.5]
+        
+        # Interprétation du sens physique
+        physical_meaning = []
+        for axis in significant_axes:
+            correlation = correlations[i, axis-1]
+            contribution = contributions_var[i, axis-1]
+            
+            interpretation = {
+                'axis': axis,
+                'correlation': float(correlation),
+                'contribution': float(contribution),
+                'meaning': 'positif' if correlation > 0 else 'négatif',
+                'quality': 'forte' if abs(correlation) > 0.7 else 'moyenne'
+            }
+            physical_meaning.append(interpretation)
+        
+        variable_classifications[var] = {
+            'significant_axes': significant_axes,
+            'physical_meaning': physical_meaning
+        }
+
     # Préparer les résultats
     results = {
         'pca_type': pca_type,
@@ -110,6 +142,11 @@ def pca(data, pca_type='normalized'):
         },
         'n_significant_components': int(n_components),
         'principal_components': principal_components.tolist(),
+        'pc_statistics': {
+            'means': pc_means.tolist(),
+            'variance': pc_variance.tolist(),
+            'covariance': pc_covariance.tolist()
+        },
         'correlations': correlations.tolist(),
         'contributions': {
             'variables': contributions_var.tolist(),
@@ -117,7 +154,8 @@ def pca(data, pca_type='normalized'):
         },
         'cos2': {
             'individuals': cos2_ind.tolist()
-        }
+        },
+        'variable_classifications': variable_classifications
     }
     
     return results
