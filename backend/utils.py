@@ -74,12 +74,9 @@ def pca(data, pca_type='normalized'):
     
     # 80% or kaiser
     if pca_type in ['normalized_kaiser', 'homogeneous_kaiser', 'heterogeneous_kaiser']:
-        # Règle de Kaiser: conserver seulement les valeurs propres ajustées > 1
         n_components = np.sum(kaiser_eigenvalues > 1)
-        # S'il n'y a pas de valeurs propres > 1, conservez au moins 1 composante
-        n_components = max(1, n_components)
+        n_components = max(1, n_components) if n_components == 0 else n_components
     else:
-        # Critère du seuil de 80% de qualité cumulée
         n_components = np.argmax(cumulative_quality >= 80) + 1 if np.any(cumulative_quality >= 80) else len(eigenvalues)
     
     # Calculer les CK
