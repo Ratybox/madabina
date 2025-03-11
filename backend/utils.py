@@ -70,49 +70,47 @@ def pca(data, pca_type='normalized'):
         n_components = np.argmax(cumulative_quality >= 80) + 1 if np.any(cumulative_quality >= 80) else len(eigenvalues)
     
     # Calculer les CK
-    principal_components = X_centered @ eigenvectors
+    principal_components = (X_centered @ eigenvectors)[:, :n_components]
     
     # Calcul les statistiques des CK
     pc_means = np.mean(principal_components, axis=0)
-    pc_variance = np.var(principal_components, axis=0)
+    pc_variance = np.var(principal_components, axis=    0)
     pc_covariance = np.cov(principal_components, rowvar=False)
     
     # Corrélations entre variables et composantes
-    correlations = np.zeros((X.shape[1], len(eigenvalues)))
+    correlations = np.zeros((X.shape[1], n_components))
     for i in range(X.shape[1]):
-        for j in range(len(eigenvalues)):
+        for j in range(n_components):
             sigma_x = np.std(X_centered[:, i])
             correlations[i, j] = np.sum(X_centered[:, i] * principal_components[:, j]) / (n * sigma_x * np.sqrt(eigenvalues[j]))
     
     # Contributions des variables aux axes
-    contributions_var = np.zeros((X.shape[1], len(eigenvalues)))
+    contributions_var = np.zeros((X.shape[1], n_components))
     for i in range(X.shape[1]):
-        for j in range(len(eigenvalues)):
+        for j in range(n_components):
             contributions_var[i, j] = (eigenvectors[i, j] ** 2) * eigenvalues[j] / total_inertia * 100
     
     # Contributions des individus aux axes
-    contributions_ind = np.zeros((X.shape[0], len(eigenvalues)))
+    contributions_ind = np.zeros((X.shape[0], n_components))
     for i in range(X.shape[0]):
-        for j in range(len(eigenvalues)):
+        for j in range(n_components):
             contributions_ind[i, j] = (principal_components[i, j] ** 2) / (eigenvalues[j])
     
     # Qualité de représentation des individus
-    cos2_ind = np.zeros((X.shape[0], len(eigenvalues)))
+    cos2_ind = np.zeros((X.shape[0], n_components))
     for i in range(X.shape[0]):
-        for j in range(len(eigenvalues)):
+        for j in range(n_components):
             cos2_ind[i, j] = (principal_components[i, j] ** 2) / np.sum(X_centered[i] ** 2)
     
     # Classification des variables
     variable_classifications = {}
     for i, var in enumerate(variables):
-        # Une variable est bien représentée si sa corrélation au carré (cos²) est > 0.5
         correlations_squared = correlations[i, :] ** 2
         significant_axes = [j+1 for j, corr in enumerate(correlations_squared) if corr >= 0.5]
         
-        # Interprétation du sens physique
         physical_meaning = []
         for axis in significant_axes:
-            correlation = correlations[i, axis-1]
+            correlation = correlations[i, axis-1] if axis <= n_components else 0.0
             contribution = contributions_var[i, axis-1]
             
             interpretation = {
