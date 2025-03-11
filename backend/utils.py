@@ -58,23 +58,13 @@ def pca(data, pca_type='normalized'):
     eigenvalues = eigenvalues[idx]
     eigenvectors = eigenvectors[:, idx]
     
-    # Ajustement des valeurs propres pour la règle de Kaiser selon le type de PCA
-    if pca_type in ['normalized_kaiser', 'normalized']:
-        kaiser_eigenvalues = eigenvalues
-    elif pca_type in ['homogeneous_kaiser', 'homogeneous']:
-        trace = np.trace(variance_matrix)
-        kaiser_eigenvalues = eigenvalues * len(eigenvalues) / trace
-    elif pca_type in ['heterogeneous_kaiser', 'heterogeneous']:
-        trace = np.trace(metric @ variance_matrix)
-        kaiser_eigenvalues = eigenvalues * len(eigenvalues) / trace
-
     # Calcul de la qualité et du nombre d'axes à retenir
     total_inertia = calculate_inertia(eigenvalues)
     cumulative_quality = np.cumsum(eigenvalues) / total_inertia * 100
     
-    # 80% or kaiser
+    # 80% ou règle de Kaiser (valeurs propres > 1)
     if pca_type in ['normalized_kaiser', 'homogeneous_kaiser', 'heterogeneous_kaiser']:
-        n_components = np.sum(kaiser_eigenvalues > 1)
+        n_components = np.sum(eigenvalues > 1)
         n_components = max(1, n_components) if n_components == 0 else n_components
     else:
         n_components = np.argmax(cumulative_quality >= 80) + 1 if np.any(cumulative_quality >= 80) else len(eigenvalues)
